@@ -3,6 +3,9 @@ import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from dotenv import load_dotenv
+import threading
+from flask import Flask
+
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
@@ -26,25 +29,18 @@ def ask_llm(prompt):
 
     return response.json()["choices"][0]["message"]["content"]
 
-
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
-
     await update.message.chat.send_action("typing")
-
     reply = ask_llm(user_text)
-
     await update.message.reply_text(reply[:4000])
 
-
+# --- Telegram bot ---
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-app.run_polling()
-
-import os
-import threading
-from flask import Flask
+def run_bot():
+    app.run_polling()
 
 # --- Flask app ---
 web_app = Flask(__name__)
@@ -53,16 +49,12 @@ web_app = Flask(__name__)
 def home():
     return "Hades is running 🔥"
 
-# --- Telegram bot runner ---
-def run_bot():
-    app.run_polling()
-
 # --- Main ---
 if __name__ == "__main__":
-    # start bot in background
+    print("Starting bot + Flask...")
+
     t = threading.Thread(target=run_bot)
     t.start()
 
-    # start web server (REQUIRED for Render)
     port = int(os.environ.get("PORT", 10000))
     web_app.run(host="0.0.0.0", port=port)
