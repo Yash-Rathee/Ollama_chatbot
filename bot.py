@@ -19,7 +19,7 @@ def ask_llm(prompt):
             "Content-Type": "application/json"
         },
         json={
-            "model": "mistralai/mistral-7b-instruct",
+            "model": "meta-llama/llama-3.1-8b-instruct",
             "messages": [
                 {"role": "system", "content": "You are a helpful AI assistant."},
                 {"role": "user", "content": prompt}
