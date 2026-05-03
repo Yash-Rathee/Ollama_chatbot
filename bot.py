@@ -42,21 +42,27 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 app.run_polling()
 
-import threading
 import os
+import threading
 from flask import Flask
 
-app_flask = Flask(__name__)
+# --- Flask app ---
+web_app = Flask(__name__)
 
-@app_flask.route('/')
+@web_app.route("/")
 def home():
-    return "Hades is alive 🔥"
+    return "Hades is running 🔥"
 
+# --- Telegram bot runner ---
 def run_bot():
     app.run_polling()
 
+# --- Main ---
 if __name__ == "__main__":
-    threading.Thread(target=run_bot).start()
-    
-    port = int(os.environ.get("PORT", 10000))  # IMPORTANT
-    app_flask.run(host="0.0.0.0", port=port)
+    # start bot in background
+    t = threading.Thread(target=run_bot)
+    t.start()
+
+    # start web server (REQUIRED for Render)
+    port = int(os.environ.get("PORT", 10000))
+    web_app.run(host="0.0.0.0", port=port)
